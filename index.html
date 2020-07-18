@@ -13,8 +13,6 @@ body {
     height: 100vh;
     color: #333333;
         }
-
-	
 	
 /*#container {
     width: 95%;
@@ -46,8 +44,6 @@ body {
     padding-left: 15px;
 }
 #columnWrapper {
-	height: 90%;
-
 }
 #title h5 {
     font-size: medium;
@@ -57,11 +53,6 @@ body {
     float: left;
     background-color: #F0EFEF;
     font-size: medium;
-	height: 90%;
-}
-#charts {
-	width: 70%;
-	float: right;
 }
 #addPet strong span {
     padding-left: 15px;
@@ -137,6 +128,17 @@ body {
             <label>Estimated Total Date(s):</label>
             <br>
             <input name="inputQuantity" type="text" id="inputQuantity">
+			  
+			  
+			  <!--End of term -->
+			<!--NEW -- INPUT FOR NEXT SHIPMENT-->
+			<br><br>
+            <label for ="inputShipment">Project Start Date:</label>
+            <br>
+            <input name="inputShipment" type="date" id="inputShipment">
+          
+			
+			
           </p>
           <p>
             <input type="button" name="button" id="button" value="Submit" onClick="getFromForm()">
@@ -150,6 +152,8 @@ body {
         <input name="Type" type="button" id="Type" title="Type" value="Type" onClick="typeSort()">
         <input name="Service Type " type="button" id="Service" title="Service" value="Service" onClick="ServiceSort()">
         <input name="Estimated Date(s)" type="button" id="EstimatedTotalDates" title="EstimatedTotalDates" value="Estimated Date(s)" onClick="EstimatedTotalDatesSort()">
+		<!-- NEW -- NEXT SHIPMENT SORT -->
+		<input name="ShipDate" type="button" id="ShipDate" title="Ship Date" value="Start Date" onClick="shipSort()">
         <br>
         <br>
         <div id="inventoryTitle"></div>
@@ -161,10 +165,8 @@ body {
   </div>
 </div>
 <div class="clearIt"></div>
-	<div id="charts">
-<div id="chart_div">
+<div id="chart_div"></div>
 <div id="chart_div2"></div>
-		</div>
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script> 
   <script type="text/javascript">
     google.charts.load('current', {packages: ['corechart']});
@@ -244,14 +246,25 @@ var selectType = document.getElementById('dropType');
 var selectService = document.getElementById('dropService');
 // EstimatedTotalDatesText holds the quantity input
 var EstimatedTotalDatesText = document.getElementById('inputQuantity');
+// NEW -- nextShipmentText HOLDS THE NUMBER OF DAYS BEFORE THE NEXT SHIPMENT
+var nextShipmentText = document.getElementById('inputShipment')
 // sortBy holds the current sort for use in displaylist
 var sortBy = "Type"
 // iTitle is used to change the title of the inventory list
 iTitle=document.getElementById('inventoryTitle');
 // set the default title for the inventory list
 iTitle.innerHTML="Current Inventory (unsorted):";
-
-
+//NEW --  VAR FOR NUMBER OF DAYS BEFORE NEXT SHIPMENT
+var dateoffset = 0;
+//NEW -- CONST USED FOR DATE CALCULATIONS (NUMBER OF MILLISECONDS IN DAY)
+const milliDays = 1000*60*60*24;
+//NEW -- USED FOR SHIPMENT COLUMN COLOR 
+var whichColor = "";
+//NEW -- USED FOR DATE CALCULATIONS
+var dateStart;
+var dateEnd;
+var dateDiff;
+	  
 	  
 // Main Pet constructor
 function Pet(type, Service, EstimatedTotalDates) 
@@ -265,6 +278,8 @@ function Pet(type, Service, EstimatedTotalDates)
 function getFromForm()
 	  	{    
 		  var formType = selectType.value;
+		  //NEW - GET DATE OFFSET FOR NEXTSHIPMENT
+		  dateoffset = parseInt(nextShipmentText.value);
 		  // get the Service and convert the first letter to an upper case letter
 		  var formService= selectService.value;
 		  // get the quantity and covert it to a number so the sort will work correctly
@@ -302,6 +317,8 @@ if (isNaN(formEstimatedTotalDates)){
 			selectType.options[0].selected = true;
 			selectService.options[0].selected = true;
 			EstimatedTotalDatesText.value = "";
+			//NEW - CLEAR NEXTSHIPMENTTEXT
+			nextShipmentText.value = "";
 			// display the current inventory
 			displayList();
 			// draw the charts
@@ -332,7 +349,15 @@ function EstimatedTotalDatesSort()
 		pets.sort(sortByEstimatedTotalDates);	
 		displayList();
 	  }
-
+//NEW - DISPLAY BY SHIPPING DATE
+function shipSort()
+	  {
+		sortBy="ShipDate";
+		iTitle.innerHTML="Current Inventory sorted by Term End:"
+    	pets.sort(sortByType);
+		pets.sort(sortByShipDate);	
+		displayList();
+	  }
 // sort by type
 function sortByType(pet1, pet2) 
 	  {
@@ -354,6 +379,19 @@ function sortByEstimatedTotalDates(pet1, pet2)
 		else if (pet1.EstimatedTotalDates === pet2.EstimatedTotalDates){ return 0;}
 		else { return -1;}
 	  }
+//NEW - SHORT BY SHIP DATE
+function sortByShipDate(pet1, pet2) 
+	  {
+		  	dateStart = Date.now();
+			var dateEnd1 = Date.parse(pet1.time);
+			var dateDiff1 = (Math.abs((dateStart - dateEnd1)/milliDays))
+		
+			var dateEnd2 = Date.parse(pet2.time);
+			var dateDiff2 = (Math.abs((dateStart - dateEnd2)/milliDays))
+		if(dateDiff1 > dateDiff2) { return 1;}
+		else if (dateDiff1 === dateDiff2){ return 0;}
+		else { return -1;}
+	  }
 
 function displayList()
 	  // Display the current inventory list
@@ -362,19 +400,28 @@ function displayList()
 		switch (sortBy)
 		{
 			case "Type":
-			a.innerHTML +='<div class=tabtitle>Type</div><div class=tabtitle>Service</div><div class=tabtitle>Estimated Date(s)</div><div class=clearIt><br>';
+			a.innerHTML +='<div class=tabtitle>Type</div><div class=tabtitle>Service</div><div class=tabtitle>Estimated Date(s)</div><div class=tabtitle>Start Date</div><div class=clearIt><br>';
 			break;
 				
 			case "Service":
-			a.innerHTML +='<div class=tabtitle>Service</div><div class=tabtitle>Type</div><div class=tabtitle>Estimated Date(s)</div><div class=clearIt><br>';
+			a.innerHTML +='<div class=tabtitle>Service</div><div class=tabtitle>Type</div><div class=tabtitle>Estimated Date(s)</div><div class=tabtitle>Start Date</div><div class=clearIt><br>';
 			break;
 				
 			case "EstimatedTotalDates":
-			a.innerHTML +='<div class=tabtitle>Estimated Date(s)</div><div class=tabtitle>Type</div><div class=tabtitle>Service</div><div class=clearIt><br>';
+			a.innerHTML +='<div class=tabtitle>Estimated Date(s)</div><div class=tabtitle>Type</div><div class=tabtitle>Service</div><div class=tabtitle>Start Date</div><div class=clearIt><br>';
+			break;
+			//NEW -- SHIPDATE	
+			case "ShipDate":
+			a.innerHTML +='<div class=tabtitle>Start Date</div><div class=tabtitle>Type</div><div class=tabtitle>Service</div><div class=tabtitle>Estimated Date(s)</div><div class=clearIt><br>';
 			break;
 		}
 		for (var i=0; i<pets.length; i++)
 		{
+			//NEW -- CALCULATE DIFFERENCE BETWEEN NOW AND NEXT SHIPMENT (.TIME)
+			dateStart = Date.now();
+			dateEnd = Date.parse(pets[i].time);
+			dateDiff = (Math.abs((dateStart - dateEnd)/milliDays))
+			
 		switch (sortBy)
 			{
 			case "Type":
@@ -400,6 +447,18 @@ function displayList()
             pets.sort(sortByEstimatedTotalDates);
 			}
 			break;
+					
+			//NEW -- SHIPDATE	
+			case "ShipDate":
+			{
+			whichColor = "black";
+			if (dateDiff<3){whichColor = "red"}else
+			if (dateDiff<6){whichColor = "orange"}
+			a.innerHTML +='<div class=tabs><span class ='+whichColor+'>'+pets[i].time +'</span></div><div class=tabs>'+pets[i].amount +'</div><div class=tabs>'+pets[i].type +'</div><div class=tabs>'+pets[i].breed +'</div><div class=tabs><input type="button" name='+i+' value="Delete All" onClick="deleteAll(name)"><input type="button" name='+i+' value="Delete One" onClick="deleteOne(name)"><div class=clearIt>';
+			// Sort the array
+            pets.sort(sortByShipDate);
+			}		
+					
 			}
 		}
 	  }
@@ -467,3 +526,4 @@ if (ServiceType == 0){
 </script>
 </body>
 </html>
+
