@@ -1,0 +1,469 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Pet Shop</title>
+<style type="text/css">
+body {
+    font-family: Helvetica;
+    background-image: url("sea.png");
+    background-size: cover;
+    background-position: center;
+    font-weight: 300;
+    height: 100vh;
+    color: #333333;
+        }
+
+	
+	
+/*#container {
+    width: 95%;
+    margin-top: 25px;
+    margin-left: auto;
+    margin-right: auto;
+    min-width: 700px;
+    font-family: Helvetica;
+}*/
+#title {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: center;
+  /*  background-image: url(background.gif);*/
+    font-size: xx-large;
+}
+#currentInventory {
+    padding-left: px;
+    background-color: #E3E1E1;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    width: 70%;
+    float: left;
+}
+#sortButtons {
+    padding-left: 15px;
+}
+#currentInventory h3 strong span {
+    padding-left: 15px;
+}
+#columnWrapper {
+	height: 90%;
+
+}
+#title h5 {
+    font-size: medium;
+}
+#addPet {
+    width: 30%;
+    float: left;
+    background-color: #F0EFEF;
+    font-size: medium;
+	height: 90%;
+}
+#charts {
+	width: 70%;
+	float: right;
+}
+#addPet strong span {
+    padding-left: 15px;
+}
+.clearIt {
+    clear: left;
+}
+#answer {
+    padding-left: 15px;
+}
+#inventoryTitle {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-left: 10px;
+}
+#inputs {
+    padding-left: 15px;
+}
+.tabs {
+    width: 25%;
+    float: left;
+}
+.tabtitle {
+    background-color: #D3D6F5;
+    width: 25%;
+    float: left;
+    font-weight: bold;
+}
+#chart_div {
+    float: left;
+	width: 50%;
+}
+#chart_div2 {
+    float: left;
+	width: 50%;
+}
+</style>
+</head>
+
+<body>
+<div id="container">
+  <div id="title">
+    <h2>PROJECT REQUESTER</h2>
+    <h5>Request quality services in web dev, UX/UI design, and web management. Start it today!:)</h5>
+      <input type="button" name="mobosite" id="mobosite" value="Switch to Mobile Ver">
+  </div>
+  <div id="columnWrapper">
+	  
+	  
+    <div id="addPet">
+		<h3><strong><span>Make A New Request:</span></strong></h3>
+
+      <div id="inputs">
+        <form id="inputForm">
+          <p>
+            <label for="dropType">Project Type: </label>
+            <br>
+            <select id="dropType" onChange="populateSelectService()">
+              <option>Select Type</option>
+              <option value="Development">Development</option>
+              <option value="Design">Design</option>
+              <option value="Management">Management</option>
+            </select>
+            <br>
+            <br>
+            <label for="dropService">Choose a Service: </label>
+            <br>
+            <select disabled="disabled" id="dropService" >
+			  <option value="General">General Services</option>
+			  </select>
+            <br>
+            <br>
+            <label>Estimated Total Date(s):</label>
+            <br>
+            <input name="inputQuantity" type="text" id="inputQuantity">
+          </p>
+          <p>
+            <input type="button" name="button" id="button" value="Submit" onClick="getFromForm()">
+          </p>
+        </form>
+      </div>
+    </div>
+    <div id="currentInventory">
+		<h3><strong><span>Your Requested Projects:</span></strong></h3>
+      <div id="sortButtons">Sort by?
+        <input name="Type" type="button" id="Type" title="Type" value="Type" onClick="typeSort()">
+        <input name="Service Type " type="button" id="Service" title="Service" value="Service" onClick="ServiceSort()">
+        <input name="Estimated Date(s)" type="button" id="EstimatedTotalDates" title="EstimatedTotalDates" value="Estimated Date(s)" onClick="EstimatedTotalDatesSort()">
+        <br>
+        <br>
+        <div id="inventoryTitle"></div>
+        <div id="answer"></div>
+      </div>
+      <div class="clearIt"></div>
+    </div>
+    <div class="clearIt"></div>
+  </div>
+</div>
+<div class="clearIt"></div>
+	<div id="charts">
+<div id="chart_div">
+<div id="chart_div2"></div>
+		</div>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script> 
+  <script type="text/javascript">
+    google.charts.load('current', {packages: ['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+      // Setup and draw the charts
+      function drawChart() {
+		// Create the first chart - Inventory by Service
+		// Convert the array created by the program into a form the chart can use 
+		var petString = "[";
+		for (var i=0; i<pets.length; i++)
+		  {petString += "['"+pets[i].Service+"',"+pets[i].EstimatedTotalDates+"],";}
+		petString = petString.substring(0, petString.length-1)+"]";
+		// Create the data for the chart
+		var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Inventory by Service');
+        data.addColumn('number', 'In stock:');
+		data.addRows(eval(petString));
+
+        // Set chart options
+        var options = {'title':'Inventory by Service',
+                       'width':400,
+                       'height':300};
+
+        // Draw the first chart using the data and options
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+		
+		// Now create the second chart - Inventory by Type
+		// Set variables
+		var typeString = "";
+		var countDevelopment = 0;
+		var countManagement = 0;
+		var countDesign = 0;
+		// Loop through the objects in the pets array
+		for (var i=0; i<pets.length; i++)
+		{ 	  
+		 switch(pets[i].type)
+		 {
+		  case "Development":
+		  	countDevelopment++;
+			break;
+		  case "Management":
+		  	countManagement++;
+			break;
+		  case "Design":
+		  	countDesign++;
+		  }
+		}
+		var typeString="[['Developments',"+countDevelopment+"],['Designs',"+countDesign+"],['Managements',"+countManagement+"]]";
+
+		// Create the data for the chart
+  		var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Inventory by Service');
+        data.addColumn('number', 'In stock:');
+        data.addRows(eval(typeString));
+		
+        // Set chart options
+        var options = {'title':'Inventory by Type',
+                       'width':400,
+                       'height':300};
+
+        // Draw the second chart using the data and options
+        var chart = new google.visualization.PieChart(document.getElementById('chart_div2'));
+        chart.draw(data, options);	
+      }
+
+
+// declare variables
+// answer is the div that holds the list
+var a = document.getElementById("answer");
+// pets is the array that hold all of the information
+var pets = [];
+// selectType sets the Type in the form
+var selectType = document.getElementById('dropType');
+// ServiceText holds the Service input
+var selectService = document.getElementById('dropService');
+// EstimatedTotalDatesText holds the quantity input
+var EstimatedTotalDatesText = document.getElementById('inputQuantity');
+// sortBy holds the current sort for use in displaylist
+var sortBy = "Type"
+// iTitle is used to change the title of the inventory list
+iTitle=document.getElementById('inventoryTitle');
+// set the default title for the inventory list
+iTitle.innerHTML="Current Inventory (unsorted):";
+
+
+	  
+// Main Pet constructor
+function Pet(type, Service, EstimatedTotalDates) 
+	  {	
+		this.type = type;
+		this.Service = Service;
+		this.EstimatedTotalDates = EstimatedTotalDates;
+	  }
+
+// Read the form into the array
+function getFromForm()
+	  	{    
+		  var formType = selectType.value;
+		  // get the Service and convert the first letter to an upper case letter
+		  var formService= selectService.value;
+		  // get the quantity and covert it to a number so the sort will work correctly
+		  var formEstimatedTotalDates = EstimatedTotalDatesText.value;
+		  // check to see if the Service already exists, if it does erase it!
+
+// validation for EstimatedTotalDatesText	
+if (isNaN(formEstimatedTotalDates)){
+
+	alert("Please enter your Estimated Total Dates for your projects.");
+}  		
+			
+ // check to see if the Service already exists, if it does erase it!
+			
+		  for (var i=0; i<pets.length; i++)
+			{
+			if((pets[i].Service == formService) && (pets[i].type == formType))
+			{
+			pets.splice(i,1);
+			}
+		}
+			// if the EstimatedTotalDates is not 0, then add the Service into the array
+			if (formEstimatedTotalDates !=0)
+			{
+				var newPet = new Pet(formType,formService,formEstimatedTotalDates);
+				pets.push(newPet);
+				// Sort the array by Type, but do Service first
+    			pets.sort(sortByService)
+				pets.sort(sortByType);
+				//set sortBy fix
+				//sortBy="Type";
+  
+			}
+			// clear the form	
+			selectType.options[0].selected = true;
+			selectService.options[0].selected = true;
+			EstimatedTotalDatesText.value = "";
+			// display the current inventory
+			displayList();
+			// draw the charts
+			drawChart();
+		}
+
+function typeSort()
+	  {
+		sortBy="Type";
+		iTitle.innerHTML="Current Inventory sorted by Type:"
+		pets.sort(sortByService);
+		pets.sort(sortByType);
+		displayList();
+	  }
+function ServiceSort()
+	  {
+		sortBy="Service";
+		iTitle.innerHTML="Current Inventory sorted by Service:"
+		pets.sort(sortByType);
+		pets.sort(sortByService);
+		displayList();
+	  }
+function EstimatedTotalDatesSort()
+	  {
+		sortBy="EstimatedTotalDates";
+		iTitle.innerHTML="Current Inventory sorted by Quantity:"
+    	pets.sort(sortByType);
+		pets.sort(sortByEstimatedTotalDates);	
+		displayList();
+	  }
+
+// sort by type
+function sortByType(pet1, pet2) 
+	  {
+		if(pet1.type > pet2.type) { return 1;}
+		else if (pet1.type === pet2.type){ return 0;}
+		else { return -1;}
+	  }
+// sort by Service
+function sortByService(pet1, pet2) 
+	  {
+		if(pet1.Service > pet2.Service) { return 1;}
+		else if (pet1.Service === pet2.Service){ return 0;}
+		else { return -1;}
+	  }
+// sort by quantity
+function sortByEstimatedTotalDates(pet1, pet2) 
+	  {
+		if(pet1.EstimatedTotalDates > pet2.EstimatedTotalDates) { return 1;}
+		else if (pet1.EstimatedTotalDates === pet2.EstimatedTotalDates){ return 0;}
+		else { return -1;}
+	  }
+
+function displayList()
+	  // Display the current inventory list
+	  {
+		a.innerHTML="";
+		switch (sortBy)
+		{
+			case "Type":
+			a.innerHTML +='<div class=tabtitle>Type</div><div class=tabtitle>Service</div><div class=tabtitle>Estimated Date(s)</div><div class=clearIt><br>';
+			break;
+				
+			case "Service":
+			a.innerHTML +='<div class=tabtitle>Service</div><div class=tabtitle>Type</div><div class=tabtitle>Estimated Date(s)</div><div class=clearIt><br>';
+			break;
+				
+			case "EstimatedTotalDates":
+			a.innerHTML +='<div class=tabtitle>Estimated Date(s)</div><div class=tabtitle>Type</div><div class=tabtitle>Service</div><div class=clearIt><br>';
+			break;
+		}
+		for (var i=0; i<pets.length; i++)
+		{
+		switch (sortBy)
+			{
+			case "Type":
+            { 
+            a.innerHTML +='<div class=tabs>'+pets[i].type +'</div><div class=tabs>'+pets[i].Service +'</div><div class=tabs>'+pets[i].EstimatedTotalDates +'</div><div class=tabs><input type="button" name='+i+' value="Delete This Project" onClick="deleteAll(name)"></div><div class=clearIt>';
+			// Sort the array
+            pets.sort(sortByType);
+			}
+    		break;
+					
+			case "Service":
+            {
+			a.innerHTML +='<div class=tabs>'+pets[i].Service +'</div><div class=tabs>'+pets[i].type +'</div><div class=tabs>'+pets[i].EstimatedTotalDates +'</div><div class=tabs><input type="button" name='+i+' value="Delete This Project" onClick="deleteAll(name)"><div class=clearIt>';
+			// Sort the array
+            pets.sort(sortByService);
+			}
+			break;
+		
+			case "EstimatedTotalDates":
+            {
+			a.innerHTML +='<div class=tabs>'+pets[i].EstimatedTotalDates +'</div><div class=tabs>'+pets[i].type +'</div><div class=tabs>'+pets[i].Service +'</div><div class=tabs><input type="button" name='+i+' value="Delete This Project" onClick="deleteAll(name)"><div class=clearIt>';
+			// Sort the array
+            pets.sort(sortByEstimatedTotalDates);
+			}
+			break;
+			}
+		}
+	  }
+function deleteAll(which)
+	  {
+    	pets.splice(which,1);
+    	typeSort();
+    	displayList();
+    	drawChart();
+	  }
+
+	  function populateSelectService(){
+	  var valueFromSelectType = "";
+	  var secondaryArray = []
+		
+		//first clear out selectService:
+			for (var i=selectService.options.length-1; i>=1; i--)
+	{
+			selectService.remove(i);
+	}
+
+		//get choice from selectType
+		valueFromSelectType = selectType.value;
+		
+		//var secondaryArray=[];
+		
+		switch(valueFromSelectType){
+			case "Development":
+				secondaryArray=[{name:"Code a site",value:"Code a site"},{name:"Wordpress Dev",value:"Wordpress Dev"},{name:"Drupal Dev",value:"Drupal Dev"}];
+				break;
+			case "Design":
+				secondaryArray=[{name:"UI/UX Design",value:"UI/UX Design"},{name:"Graphic Design",value:"Graphic Design"},{name:"Animation Design",value:"Animation Design"}];
+				break;
+			case "Management":
+				secondaryArray=[{name:"Content Management",value:"Content Management"},{name:"Host Management",value:"Host Management"},{name:"Site Maintenance",value:"Site Maintenance"}];
+				break;
+		}		  
+		  
+		  
+	for(var i=0; i<secondaryArray.length;i++)
+	{
+	//populate second drop down
+		var dropItem = document.createElement("option");
+		dropItem.textContent = secondaryArray[i].name;
+		dropItem.value = secondaryArray[i].value;
+		selectService.appendChild(dropItem);
+	}
+		 
+		selectService.disabled = false;
+	 
+//validating service type 
+ /*❌❌❌❌❌❌❌❌❌❌ 这里有问题了，在用户选择之前这个框框就会弹出！而且并不能够filter掉servicetype为0的
+var ServiceType= dropService.value;
+if (ServiceType == 0){
+	alert("Please choose a Service Type");
+	return;
+	  } */
+		  
+		  
+//Futute plan: edit project?		  
+
+		  
+}
+		  
+</script>
+</body>
+</html>
